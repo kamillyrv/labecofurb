@@ -1,0 +1,110 @@
+---
+title: "A interpretação dos gráficos!"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+library(tidyverse)
+library(WDI)
+```
+
+```{r}
+#| label: load-data
+#| include: false
+
+library(gapminder)
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Código de carregamento de dados
+
+# Selecionar um subconjunto de países e um ano específico
+paises_selecionados <- c("Brazil", "United States", "China", "India", "Germany")
+dados_corte <- gapminder %>% filter(year == 2007 & country %in% paises_selecionados)
+
+
+# Filtrar dados para a África do Sul
+dados_serie <- gapminder %>% filter(country == "South Africa")
+
+# Obter os anos mínimo e máximo da série
+ano_min <- min(dados_serie$year)
+ano_max <- max(dados_serie$year)
+```
+
+## Gráfico de Corte Transversal:
+
+A seguir, analisaremos o gráfico ‘PIB per capita vs Expectativa de Vida (2007)’ para entender como fatores econômicos se relacionam com a qualidade de vida entre diferentes países.
+
+#### Explicação gráfica:
+
+O gráfico de dispersão compara o PIB per capita (variável `NY.GDP.PCAP.CD`) no eixo x, com a expectativa de vida ao nascer (variável `SP.DYN.LE00.IN`) no eixo y, utilizando dados do Banco Mundial (World Development Indicators, 2025).\
+
+Cada ponto colorido representa um país, e sua posição reflete a relação entre renda média e qualidade de vida. Foram escolhidos 5 países.
+
+#### Análise gráfica:
+
+De modo geral, países com maior PIB per capita tendem a apresentar expectativa de vida mais elevada, evidenciando uma relação positiva entre renda e bem-estar.
+
+No entanto, essa relação **não é aboluta**:
+
+-   **Vietnã**: apresenta baixa renda, mas expectativa de vida relativamente alta, atribuída a políticas públicas eficazes nas áreas de saúde e educação.
+
+-   **Estados Unidos**: alta renda, mas expectativa de vida abaixo do esperado, devido a má alimentação, obesidade, doenças crônicas e desigualdades no acesso à saúde.
+
+O gráfico evidencia que, embora os fatores econômicos influenciem significativamente os níveis de bem-estar, eles não os determinam de forma isolada.
+
+```{r}
+#| label: graf1
+#| warning: false
+#| echo: false
+
+ggplot(dados_corte, aes(x = gdpPercap, y = lifeExp, color = country)) +
+  geom_point(size = 4) +  # Ajusta tamanho dos pontos
+  labs(title = "PIB per capita vs Expectativa de Vida (2007)",
+       x = "PIB per capita",
+       y = "Expectativa de Vida",
+       color = "País") +  # Adiciona legenda
+  theme_minimal() +
+  theme(legend.position = "bottom")  # Ajusta a posição da legenda
+
+```
+
+## Gráfico de Série Temporal:
+
+Nesse gráfico vamos analisar o gráfico 'Evolução da População na África do Sul' e interpretar as principais informações que ele nos revela sobre o crescimento populacional ao longo dos anos.ação gráfica:
+
+#### Explicação gráfica:
+
+O gráfico apresenta a evolução da população da África do Sul ao longo do tempo, com base na variável `SP.POP.TOTL`, proveniente da base de dados *World Development Indicators* do Banco Mundial (2025).\
+
+No eixo horizontal, estão os anos; no eixo vertical, a população total (em milhões de habitantes).\
+
+A linha azul representa a tendência de crescimento populacional, enquanto os pontos vermelhos indicam os valores registrados ano a ano.
+
+\
+A **linha azul** indica a tendência de crescimento populacional, enquanto os **pontos vermelhos** destacam os valores exatos ano a ano.
+
+#### Análise gráfica:
+
+Observa-se um crescimento populacional acelerado nos primeiros anos do período analisado, com uma tendência próxima ao padrão exponencial. Nos anos mais recentes, o crescimento se desacelera, tornando-se mais estável. Esse padrão reflete uma tendência global de transição demográfica, associada a avanços em saúde, educação e planejamento familiar. A África do Sul caminha, assim, para um crescimento mais equilibrado e sustentável.
+
+```{r}
+#| label: graf2
+#| warning: false
+#| echo: false
+
+ggplot(dados_serie, aes(x = year, y = pop)) +
+  geom_line(color = "blue", size = 1) +  # Linha azul para destaque
+  geom_point(color = "red", size = 3) +  # Pontos vermelhos nos anos
+  labs(title = sprintf("Evolução da População na África do Sul (%d - %d)", ano_min, ano_max),
+       x = "Ano",
+       y = "População Total") +
+  scale_y_continuous(labels = number_format(scale = 1e-6, suffix = "M")) +  # Formato de números decimais (milhões)
+  scale_x_continuous(labels = number_format()) +  # Formato de números para o eixo X
+  theme_minimal()
+```
