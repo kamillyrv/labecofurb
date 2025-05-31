@@ -1,0 +1,108 @@
+---
+title: "Índice de comprometimento da renda com crédito, com ajuste sazonal"
+format: html
+editor: visual
+font-size: 24px;
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+#| warning: false
+#| message: false
+#| echo: false
+
+#install.packages("ragg")
+library(rbcb)
+library(dplyr)
+library(ggplot2)
+library(gganimate)
+library(gifski)
+library(Cairo)
+```
+
+```{r}
+#| label: load-data-rbcb
+#| warning: false
+#| message: false
+#| echo: false
+
+df.bcb <- get_series(29034) |>
+  rename(ref.date = date, value = `29034`) |>
+  filter(!is.na(ref.date), !is.na(value))
+```
+
+O **índice de comprometimento da renda das famílias com o crédito** é calculado pelo Banco Central do Brasil com base nas informações do Sistema Financeiro Nacional. Ele representa a proporção da renda familiar *destinada ao pagamento das obrigações financeiras*, como empréstimos e financiamentos.
+
+Os dados apresentados neste gráfico foram ajustados *sazonalmente,* ou seja, passaram por um processo estatístico que *elimina variações periódicas previsíveis,* como aquelas associadas a meses ou trimestres específicos (natal, páscoa, dia das mães), permitindo uma análise mais clara das tendências econômicas subjacentes.
+
+A série temporal é proveniente do Banco Central do Brasil e reflete a evolução histórica do endividamento das famílias brasileiras.
+
+```{r}
+#| label: plot-animate
+#| warning: false
+#| message: false
+#| echo: false
+
+p <- ggplot(df.bcb, aes(x = ref.date, y = value)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "darkred", size = 1.5) +
+  labs(
+    title = "Comprometimento da Renda das Famílias com crédito (2005-2025)",
+    subtitle = 'Ano: {frame_along %>% as.Date() %>% format("%Y")}',
+  x = '',
+  y = '% da renda comprometida'
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.background = element_rect(fill = "#f7f7f7", color = NA),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic")
+  ) +
+  transition_reveal(ref.date)
+
+# animação criada (exemplo)
+
+anim_file <- "animacao.gif"
+
+anim_file <- "animacao.gif"
+anim <- animate(
+  p,
+  nframes = 120,
+  fps = 20,
+  width = 8,
+  height = 5,
+  res = 72,
+  renderer = gifski_renderer(),
+  dev = "ragg_png"
+)
+
+
+anim_save(anim_file, anim)
+
+# Verifica se o arquivo existe
+print(file.exists(anim_file))
+
+# Exibe no documento
+knitr::include_graphics(anim_file)
+```
+
+O índice de comprometimento da renda das famílias com o crédito apresenta variações significativas ao longo do tempo, refletindo os ciclos econômicos e eventos relevantes que impactam o endividamento.
+
+É possível observar aumentos em períodos de crise econômica quando a renda disponível se reduz e as famílias podem ficar mais endividadas, como exemplo em 2008, durante a crise financeira global.
+
+Já em momentos de crescimento econômico, o índice tende a se estabilizar ou reduzir, indicando maior equilíbrio financeiro das famílias, o que aconteceu em 2020 e 2021, quando houve uma tendência de estabilização e ligeira redução no índice, sugerindo uma recuperação gradual da saúde financeira das famílias.
+
+A análise sazonal ajuda a identificar essas tendências sem as distorções provocadas por variações temporais previsíveis.
+
+-----------------------------------------------------------------------------------------------------------------
+
+Kamilly Roberta Viola
+
+Laboratório de Dados econômicos.
+
+Fontes:
+
+**BANCO CENTRAL DO BRASIL.** Séries Temporais. Disponível em: <https://www3.bcb.gov.br/sgspub/localizarseries/localizarSeries.do?method=prepararTelaLocalizarSeries>. Acesso em: 30 maio 2025.
+
+**BANCO CENTRAL DO BRASIL.** Sistema Financeiro Nacional (SFN). Disponível em: <https://www.bcb.gov.br/controleinflacao/sfn>. Acesso em: 30 maio 2025.
