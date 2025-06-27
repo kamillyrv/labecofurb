@@ -1,0 +1,171 @@
+---
+title: "A História da Variável SL.UEM.TOTL.ZS: A Taxa de Desemprego"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+library(tidyverse)
+library(WDI)
+library(gganimate)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(transformr)
+library(ggthemes)
+library(gifski)
+library(png)
+library(magick)
+```
+
+```{r}
+#| label: load-data
+#| include: false
+
+unemp_data <- WDI(indicator = "SL.UEM.TOTL.ZS", start = 1991, end = 2022) %>%
+  rename(unemployment = SL.UEM.TOTL.ZS) %>%
+  filter(!is.na(unemployment))
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+dir.create("frames", showWarnings = FALSE)
+```
+
+```{r}
+#| label: graf1
+#| warning: false
+#| echo: false
+
+anos <- unique(unemp_data$year)
+
+for (ano in anos) {
+  dados_ano <- unemp_data %>% filter(year == ano)
+  mapa_ano <- left_join(world, dados_ano, by = c("iso_a3" = "iso3c"))
+
+  p <- ggplot(mapa_ano) +
+    geom_sf(aes(fill = unemployment), color = "gray60", size = 0.1) +
+    scale_fill_gradientn(
+      colors = c("blue", "green", "yellow", "red"),
+      na.value = "lightgray",
+      name = "Desemprego (%)"
+    ) +
+    labs(title = paste("Taxa de Desemprego por País -", ano),
+         caption = "Fonte: Banco Mundial (WDI)") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+  ggsave(filename = paste0("frames/map_", ano, ".png"), plot = p, width = 10, height = 6)
+}
+```
+
+```{r}
+#| label: gerar-gif
+#| message: false
+#| warning: false
+#| echo: false
+
+imgs <- list.files("frames", full.names = TRUE) %>% 
+  str_sort() %>% 
+  image_read()
+
+animation <- image_animate(image_join(imgs), fps = 5)
+image_write(animation, "mapa_desemprego_final.gif")
+```
+
+```{r}
+#| label: mostrar-gif
+#| message: false
+#| warning: false
+#| echo: false
+
+knitr::include_graphics("mapa_desemprego_final.gif")
+```
+
+## **Interpretação Gráfica:**
+
+O gráfico animado apresenta a variação espacial e temporal da **taxa de desemprego** (% da força de trabalho total) em diversos países do mundo, ao longo do período de **1991 a 2022**, com base nos dados do Banco Mundial (indicador **SL.UEM.TOTL.ZS**).
+
+-   Crises econômicas importantes, como a de 2008 e a pandemia de COVID-19 (2020), provocaram picos significativos no desemprego, especialmente em países desenvolvidos.
+
+**Diferenças regionais marcantes**
+
+-   Europa e América Latina apresentam historicamente taxas mais elevadas.
+
+-   Países como Espanha, Grécia e Brasil atingiram níveis altos em alguns anos.
+
+-   África Subsaariana e partes da Ásia Central também mostram taxas elevadas, mas com variações entre os países.
+
+-   Em contraste, Japão, Suíça, Cingapura e outras nações do Sudeste Asiático mantêm taxas baixas e estáveis.
+
+**Mudança na intensidade das cores (taxas de desemprego)**
+
+-   A transição das cores no mapa ao longo do tempo reflete os efeitos das políticas econômicas, crises e instabilidades regionais.
+
+-   Por exemplo, a América do Sul apresenta aumento do desemprego entre 2014 e 2020.
+
+-   Muitas economias asiáticas mostram relativa estabilidade nesse período.
+
+O desemprego é um fenômeno **dinâmico e multidimensional**, fortemente influenciado por contextos econômicos, políticos e sociais. A análise reforça a importância de se acompanhar **indicadores ao longo do tempo**, e não apenas em retratos estáticos, para entender as vulnerabilidades e resiliências dos mercados de trabalho ao redor do mundo.
+
+## **A história da variável**
+
+A variável **SL.UEM.TOTL.ZS**, usada amplamente por organismos internacionais como o Banco Mundial, representa a **taxa de desemprego total** como **percentual da força de trabalho total** (total de pessoas economicamente ativas, incluindo homens e mulheres com 15 anos ou mais). Embora sua sigla pareça meramente técnica ou burocrática, por trás dela existe uma longa história de evolução conceitual, metodológica e política, marcada por profundas transformações no pensamento econômico, nas estatísticas sociais e nas formas como as sociedades entendem o trabalho e sua ausência.
+
+Esta “biografia” busca apresentar o percurso histórico e conceitual dessa variável, desde os primórdios da preocupação com o desemprego nas economias capitalistas modernas até sua institucionalização como um dos principais indicadores de desempenho socioeconômico global. A história da SL.UEM.TOTL.ZS é também, por consequência, a história da própria construção do conceito de desemprego.
+
+#### 
+
+##### **1. As Origens do Conceito de Desemprego**
+
+O desemprego, enquanto preocupação social, é um fenômeno historicamente recente. Em sociedades pré-capitalistas, a ausência de trabalho remunerado não era, em si, considerada um problema estatístico. Somente com a consolidação do capitalismo industrial, nos séculos XVIII e XIX, a figura do “desempregado” começou a emergir como um elemento importante da dinâmica econômica.
+
+A obra de Karl Marx já analisava o que ele chamou de “exército industrial de reserva”, referindo-se à massa de trabalhadores desempregados necessária para manter os salários baixos e garantir a disciplina da força de trabalho (MARX, 2013). Contudo, o desemprego ainda não era quantificado sistematicamente nessa época.
+
+Foi apenas após a Grande Depressão de 1929, quando os EUA enfrentaram níveis sem precedentes de desemprego, que surgiu uma necessidade urgente de medir, monitorar e intervir nesse fenômeno. Nos anos 1930, economistas como John Maynard Keynes passaram a defender políticas públicas voltadas à geração de empregos, colocando o desemprego como uma variável-chave da macroeconomia (KEYNES, 1983).
+
+##### **2. A Consolidação Estatística e a Padronização Internacional**
+
+A mensuração do desemprego ganhou robustez com a fundação da Organização Internacional do Trabalho (OIT) em 1919, mas foi após a Segunda Guerra Mundial que se institucionalizou um esforço global de padronização. A OIT foi responsável por formular definições operacionais mais precisas, como a que considera desempregado todo indivíduo que está sem trabalho, disponível para trabalhar e buscando ativamente uma ocupação.
+
+A partir dos anos 1970, com o crescimento das bases de dados internacionais e o fortalecimento de organismos como o Banco Mundial e o FMI, consolidou-se a necessidade de codificação padronizada das variáveis econômicas e sociais. É nesse contexto que surge a variável SL.UEM.TOTL.ZS no sistema de indicadores do Banco Mundial.
+
+O código possui uma lógica específica:
+
+-    **SL**: refere-se ao tema “Social Labor” (Trabalho Social),
+
+-    **UEM**: abreviação de "Unemployment" (Desemprego),
+
+-    **TOTL**: indica que se trata da taxa total (incluindo todos os gêneros e faixas etárias dentro dos limites definidos),
+
+-    **ZS**: refere-se à unidade de medida em **percentual (% da força de trabalho)**.
+
+Essa variável passou a ser alimentada por dados de institutos nacionais de estatística, ajustados metodologicamente segundo os critérios da OIT e validados pelos próprios sistemas do Banco Mundial, o que garantiu maior comparabilidade entre países e ao longo do tempo.
+
+##### **3. A Importância da SL.UEM.TOTL.ZS no Século XXI**
+
+No século XXI, com o avanço da globalização e das tecnologias de informação, a variável SL.UEM.TOTL.ZS ganhou ainda mais relevância. Ela serve não apenas como um termômetro das condições econômicas de um país, mas também como um indicador de vulnerabilidade social, estabilidade política e potencial de desenvolvimento humano.
+
+Além disso, sua análise tem implicações diretas para o planejamento de políticas públicas, para os estudos sobre desigualdade, gênero e juventude, e para os debates sobre o futuro do trabalho em uma era de automação e economia digital. Sua inclusão em relatórios como o Relatório de Desenvolvimento Humano da ONU e o Doing Business do Banco Mundial atesta sua centralidade analítica.
+
+#### **Conclusão**
+
+A variável SL.UEM.TOTL.ZS é mais do que um número: é o resultado de um longo processo histórico de construção conceitual e metodológica sobre o que significa estar desempregado. Ela traduz, em linguagem estatística, preocupações sociais e econômicas profundas que atravessam séculos. Ao entendê-la em sua complexidade, pesquisadores e formuladores de políticas públicas podem construir diagnósticos mais precisos e propostas mais eficazes para enfrentar os desafios do mundo do trabalho contemporâneo.\
+\
+**Referências**
+
+BANCO MUNDIAL (World Bank). *World Development Indicators (WDI) database*. Indicador SL.UEM.TOTL.ZS - Taxa de desemprego total (% da força de trabalho total). Disponível em: <https://databank.worldbank.org/source/world-development-indicators>. Acesso em: 20 jun. 2025.
+
+DURKHEIM, Émile. *Da divisão do trabalho social*. São Paulo: Martins Fontes, 2004.
+
+KEYNES, John Maynard. *A teoria geral do emprego, do juro e da moeda*. São Paulo: Nova Cultural, 1983.
+
+MARX, Karl. *O capital: crítica da economia política*. Livro I. São Paulo: Boitempo, 2013.
+
+OIT – Organização Internacional do Trabalho. *Resolução sobre estatísticas do trabalho, emprego e subutilização da força de trabalho*. Genebra: OIT, 2013.
+
+SOUZA, Jessé. *A ralé brasileira: quem é e como vive*. Belo Horizonte: UFMG, 2009.
+
+Alunos: Emily da Cruz, Enzo Duarte Crozeta, Kamilly Roberta Viola e Luan Gabriel Stein.
